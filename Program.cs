@@ -19,8 +19,9 @@ while (running)
     Console.WriteLine("2. Add Expense");
     Console.WriteLine("3. View Transactions");
     Console.WriteLine("4. View Financial Summary");
-    Console.WriteLine("5. Delete Transaction");
-    Console.WriteLine("6. Exit");
+    Console.WriteLine("5. Edit Transaction");
+    Console.WriteLine("6. Delete Transaction");
+    Console.WriteLine("7. Exit");
     Console.WriteLine("====================================");
     Console.Write("Choose an option: ");
 
@@ -45,16 +46,20 @@ while (running)
             break;
 
         case "5":
-            DeleteTransaction(manager, storage);
+            EditTransaction(manager, storage);
             break;
 
         case "6":
+            DeleteTransaction(manager, storage);
+            break;
+
+        case "7":
             storage.SaveTransactions(manager.GetTransactions());
             running = false;
             break;
 
         default:
-            Console.WriteLine("Invalid option. Please choose 1-6.");
+            Console.WriteLine("Invalid option. Please choose 1-7.");
             Pause();
             break;
     }
@@ -96,7 +101,6 @@ static void AddIncome(
 
     manager.AddTransaction(income);
 
-    // Save immediately
     storage.SaveTransactions(manager.GetTransactions());
 
     Console.WriteLine();
@@ -139,7 +143,6 @@ static void AddExpense(
 
     manager.AddTransaction(expense);
 
-    // Save immediately
     storage.SaveTransactions(manager.GetTransactions());
 
     Console.WriteLine();
@@ -203,6 +206,108 @@ static void ViewSummary(FinanceManager manager)
     Console.WriteLine(
         $"Current Balance: ${manager.GetBalance():F2}"
     );
+
+    Pause();
+}
+
+
+// EDIT TRANSACTION
+static void EditTransaction(
+    FinanceManager manager,
+    JsonStorage storage)
+{
+    Console.Clear();
+
+    Console.WriteLine("=== EDIT TRANSACTION ===");
+    Console.WriteLine();
+
+    List<Transaction> transactions = manager.GetTransactions();
+
+    if (transactions.Count == 0)
+    {
+        Console.WriteLine("There are no transactions to edit.");
+        Pause();
+        return;
+    }
+
+    // Show all transactions with numbers
+    for (int i = 0; i < transactions.Count; i++)
+    {
+        Transaction transaction = transactions[i];
+
+        Console.WriteLine(
+            $"{i + 1}. " +
+            $"{transaction.GetTransactionType()} | " +
+            $"{transaction.Description} | " +
+            $"{transaction.Category} | " +
+            $"${transaction.Amount:F2}"
+        );
+    }
+
+    Console.WriteLine();
+    Console.Write("Enter the number of the transaction to edit: ");
+
+    if (!int.TryParse(Console.ReadLine(), out int number))
+    {
+        Console.WriteLine("Invalid number.");
+        Pause();
+        return;
+    }
+
+    int index = number - 1;
+
+    if (index < 0 || index >= transactions.Count)
+    {
+        Console.WriteLine("Transaction not found.");
+        Pause();
+        return;
+    }
+
+    Transaction selectedTransaction = transactions[index];
+
+    Console.WriteLine();
+    Console.WriteLine("Current details:");
+    Console.WriteLine(
+        $"{selectedTransaction.GetTransactionType()} | " +
+        $"{selectedTransaction.Description} | " +
+        $"{selectedTransaction.Category} | " +
+        $"${selectedTransaction.Amount:F2}"
+    );
+
+    Console.WriteLine();
+
+    Console.Write("New description: ");
+    string description = Console.ReadLine() ?? "";
+
+    Console.Write("New category: ");
+    string category = Console.ReadLine() ?? "";
+
+    Console.Write("New amount: $");
+
+    if (!decimal.TryParse(Console.ReadLine(), out decimal amount)
+        || amount <= 0)
+    {
+        Console.WriteLine("Invalid amount.");
+        Pause();
+        return;
+    }
+
+    bool edited = manager.EditTransaction(
+        index,
+        description,
+        amount,
+        category
+    );
+
+    if (edited)
+    {
+        storage.SaveTransactions(manager.GetTransactions());
+        Console.WriteLine("Transaction updated and saved successfully!");
+    }
+    else
+    {
+        Console.WriteLine("Transaction could not be updated.");
+    }
 
     Pause();
 }

@@ -22,12 +22,33 @@ namespace PersonalFinanceManager
             return transactions;
         }
 
-        // Delete a transaction using its list index
+        // Delete a transaction
         public bool DeleteTransaction(int index)
         {
             if (index >= 0 && index < transactions.Count)
             {
                 transactions.RemoveAt(index);
+                return true;
+            }
+
+            return false;
+        }
+
+        // Edit an existing transaction
+        public bool EditTransaction(
+            int index,
+            string description,
+            decimal amount,
+            string category)
+        {
+            if (index >= 0 && index < transactions.Count)
+            {
+                Transaction transaction = transactions[index];
+
+                transaction.Description = description;
+                transaction.Amount = amount;
+                transaction.Category = category;
+
                 return true;
             }
 
