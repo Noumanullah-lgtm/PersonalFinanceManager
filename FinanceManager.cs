@@ -9,6 +9,11 @@ namespace PersonalFinanceManager
             transactions.Add(transaction);
         }
 
+        public void LoadTransactions(List<Transaction> loadedTransactions)
+        {
+            transactions = loadedTransactions;
+        }
+
         public List<Transaction> GetTransactions()
         {
             return transactions;

@@ -1,9 +1,11 @@
 ﻿using PersonalFinanceManager;
 
 FinanceManager manager = new FinanceManager();
+JsonStorage storage = new JsonStorage();
+
+manager.LoadTransactions(storage.LoadTransactions());
 
 bool running = true;
-
 while (running)
 {
     Console.Clear();
@@ -39,9 +41,11 @@ while (running)
             ViewSummary(manager);
             break;
 
-        case "5":
-            running = false;
-            break;
+       case "5":
+    storage.SaveTransactions(manager.GetTransactions());
+    Console.WriteLine("Transactions saved.");
+    running = false;
+    break;
 
         default:
             Console.WriteLine("Invalid option. Please choose 1-5.");
