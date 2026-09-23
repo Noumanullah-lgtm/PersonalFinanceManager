@@ -3,7 +3,7 @@
 FinanceManager manager = new FinanceManager();
 JsonStorage storage = new JsonStorage();
 
-// Load saved transactions when application starts
+// Load saved transactions when the application starts
 manager.LoadTransactions(storage.LoadTransactions());
 
 bool running = true;
@@ -19,9 +19,10 @@ while (running)
     Console.WriteLine("2. Add Expense");
     Console.WriteLine("3. View Transactions");
     Console.WriteLine("4. View Financial Summary");
-    Console.WriteLine("5. Edit Transaction");
-    Console.WriteLine("6. Delete Transaction");
-    Console.WriteLine("7. Exit");
+    Console.WriteLine("5. Filter Transactions");
+    Console.WriteLine("6. Edit Transaction");
+    Console.WriteLine("7. Delete Transaction");
+    Console.WriteLine("8. Exit");
     Console.WriteLine("====================================");
     Console.Write("Choose an option: ");
 
@@ -46,20 +47,24 @@ while (running)
             break;
 
         case "5":
-            EditTransaction(manager, storage);
+            FilterTransactions(manager);
             break;
 
         case "6":
-            DeleteTransaction(manager, storage);
+            EditTransaction(manager, storage);
             break;
 
         case "7":
+            DeleteTransaction(manager, storage);
+            break;
+
+        case "8":
             storage.SaveTransactions(manager.GetTransactions());
             running = false;
             break;
 
         default:
-            Console.WriteLine("Invalid option. Please choose 1-7.");
+            Console.WriteLine("Invalid option. Please choose 1-8.");
             Pause();
             break;
     }
@@ -152,7 +157,7 @@ static void AddExpense(
 }
 
 
-// VIEW TRANSACTIONS
+// VIEW ALL TRANSACTIONS
 static void ViewTransactions(FinanceManager manager)
 {
     Console.Clear();
@@ -160,30 +165,115 @@ static void ViewTransactions(FinanceManager manager)
     Console.WriteLine("=== TRANSACTION HISTORY ===");
     Console.WriteLine();
 
-    List<Transaction> transactions = manager.GetTransactions();
-
-    if (transactions.Count == 0)
-    {
-        Console.WriteLine("No transactions have been recorded.");
-    }
-    else
-    {
-        for (int i = 0; i < transactions.Count; i++)
-        {
-            Transaction transaction = transactions[i];
-
-            Console.WriteLine(
-                $"{i + 1}. " +
-                $"{transaction.Date:dd/MM/yyyy} | " +
-                $"{transaction.GetTransactionType()} | " +
-                $"{transaction.Description} | " +
-                $"{transaction.Category} | " +
-                $"${transaction.Amount:F2}"
-            );
-        }
-    }
+    DisplayTransactions(manager.GetTransactions());
 
     Pause();
+}
+
+
+// FILTER TRANSACTIONS
+static void FilterTransactions(FinanceManager manager)
+{
+    bool filtering = true;
+
+    while (filtering)
+    {
+        Console.Clear();
+
+        Console.WriteLine("=== FILTER TRANSACTIONS ===");
+        Console.WriteLine();
+        Console.WriteLine("1. Show Income");
+        Console.WriteLine("2. Show Expenses");
+        Console.WriteLine("3. Search by Category");
+        Console.WriteLine("4. Back");
+        Console.WriteLine();
+        Console.Write("Choose an option: ");
+
+        string? choice = Console.ReadLine();
+
+        switch (choice)
+        {
+            case "1":
+                Console.Clear();
+                Console.WriteLine("=== INCOME TRANSACTIONS ===");
+                Console.WriteLine();
+
+                DisplayTransactions(
+                    manager.GetIncomeTransactions()
+                );
+
+                Pause();
+                break;
+
+            case "2":
+                Console.Clear();
+                Console.WriteLine("=== EXPENSE TRANSACTIONS ===");
+                Console.WriteLine();
+
+                DisplayTransactions(
+                    manager.GetExpenseTransactions()
+                );
+
+                Pause();
+                break;
+
+            case "3":
+                Console.Clear();
+                Console.WriteLine("=== SEARCH BY CATEGORY ===");
+                Console.WriteLine();
+
+                Console.Write("Enter category: ");
+                string category = Console.ReadLine() ?? "";
+
+                Console.WriteLine();
+                Console.WriteLine(
+                    $"=== RESULTS FOR {category.ToUpper()} ==="
+                );
+                Console.WriteLine();
+
+                DisplayTransactions(
+                    manager.GetTransactionsByCategory(category)
+                );
+
+                Pause();
+                break;
+
+            case "4":
+                filtering = false;
+                break;
+
+            default:
+                Console.WriteLine("Invalid option. Please choose 1-4.");
+                Pause();
+                break;
+        }
+    }
+}
+
+
+// DISPLAY A LIST OF TRANSACTIONS
+static void DisplayTransactions(
+    List<Transaction> transactions)
+{
+    if (transactions.Count == 0)
+    {
+        Console.WriteLine("No matching transactions found.");
+        return;
+    }
+
+    for (int i = 0; i < transactions.Count; i++)
+    {
+        Transaction transaction = transactions[i];
+
+        Console.WriteLine(
+            $"{i + 1}. " +
+            $"{transaction.Date:dd/MM/yyyy} | " +
+            $"{transaction.GetTransactionType()} | " +
+            $"{transaction.Description} | " +
+            $"{transaction.Category} | " +
+            $"${transaction.Amount:F2}"
+        );
+    }
 }
 
 
@@ -230,19 +320,7 @@ static void EditTransaction(
         return;
     }
 
-    // Show all transactions with numbers
-    for (int i = 0; i < transactions.Count; i++)
-    {
-        Transaction transaction = transactions[i];
-
-        Console.WriteLine(
-            $"{i + 1}. " +
-            $"{transaction.GetTransactionType()} | " +
-            $"{transaction.Description} | " +
-            $"{transaction.Category} | " +
-            $"${transaction.Amount:F2}"
-        );
-    }
+    DisplayTransactions(transactions);
 
     Console.WriteLine();
     Console.Write("Enter the number of the transaction to edit: ");
@@ -267,6 +345,7 @@ static void EditTransaction(
 
     Console.WriteLine();
     Console.WriteLine("Current details:");
+
     Console.WriteLine(
         $"{selectedTransaction.GetTransactionType()} | " +
         $"{selectedTransaction.Description} | " +
@@ -302,11 +381,15 @@ static void EditTransaction(
     if (edited)
     {
         storage.SaveTransactions(manager.GetTransactions());
-        Console.WriteLine("Transaction updated and saved successfully!");
+        Console.WriteLine(
+            "Transaction updated and saved successfully!"
+        );
     }
     else
     {
-        Console.WriteLine("Transaction could not be updated.");
+        Console.WriteLine(
+            "Transaction could not be updated."
+        );
     }
 
     Pause();
@@ -332,21 +415,12 @@ static void DeleteTransaction(
         return;
     }
 
-    for (int i = 0; i < transactions.Count; i++)
-    {
-        Transaction transaction = transactions[i];
-
-        Console.WriteLine(
-            $"{i + 1}. " +
-            $"{transaction.GetTransactionType()} | " +
-            $"{transaction.Description} | " +
-            $"{transaction.Category} | " +
-            $"${transaction.Amount:F2}"
-        );
-    }
+    DisplayTransactions(transactions);
 
     Console.WriteLine();
-    Console.Write("Enter the number of the transaction to delete: ");
+    Console.Write(
+        "Enter the number of the transaction to delete: "
+    );
 
     if (!int.TryParse(Console.ReadLine(), out int number))
     {
@@ -362,7 +436,9 @@ static void DeleteTransaction(
     if (deleted)
     {
         storage.SaveTransactions(manager.GetTransactions());
-        Console.WriteLine("Transaction deleted successfully.");
+        Console.WriteLine(
+            "Transaction deleted successfully."
+        );
     }
     else
     {

@@ -4,25 +4,21 @@ namespace PersonalFinanceManager
     {
         private List<Transaction> transactions = new List<Transaction>();
 
-        // Add a new transaction
         public void AddTransaction(Transaction transaction)
         {
             transactions.Add(transaction);
         }
 
-        // Load transactions from JSON storage
         public void LoadTransactions(List<Transaction> loadedTransactions)
         {
             transactions = loadedTransactions;
         }
 
-        // Return all transactions
         public List<Transaction> GetTransactions()
         {
             return transactions;
         }
 
-        // Delete a transaction
         public bool DeleteTransaction(int index)
         {
             if (index >= 0 && index < transactions.Count)
@@ -34,7 +30,6 @@ namespace PersonalFinanceManager
             return false;
         }
 
-        // Edit an existing transaction
         public bool EditTransaction(
             int index,
             string description,
@@ -55,7 +50,33 @@ namespace PersonalFinanceManager
             return false;
         }
 
-        // Calculate total income
+        // Get only income transactions
+        public List<Transaction> GetIncomeTransactions()
+        {
+            return transactions
+                .Where(t => t is Income)
+                .ToList();
+        }
+
+        // Get only expense transactions
+        public List<Transaction> GetExpenseTransactions()
+        {
+            return transactions
+                .Where(t => t is Expense)
+                .ToList();
+        }
+
+        // Find transactions that match a category
+        public List<Transaction> GetTransactionsByCategory(string category)
+        {
+            return transactions
+                .Where(t =>
+                    t.Category.Equals(
+                        category,
+                        StringComparison.OrdinalIgnoreCase))
+                .ToList();
+        }
+
         public decimal GetTotalIncome()
         {
             return transactions
@@ -63,7 +84,6 @@ namespace PersonalFinanceManager
                 .Sum(t => t.Amount);
         }
 
-        // Calculate total expenses
         public decimal GetTotalExpenses()
         {
             return transactions
@@ -71,7 +91,6 @@ namespace PersonalFinanceManager
                 .Sum(t => t.Amount);
         }
 
-        // Calculate current balance
         public decimal GetBalance()
         {
             return GetTotalIncome() - GetTotalExpenses();
